@@ -1,9 +1,13 @@
 from flask import Flask, render_template, request, redirect, send_from_directory
 from flask_assets import Bundle, Environment
 import pymongo
-import re
-
+import re, os
 import forms
+import hashlib
+import utils
+
+#rebuild tailwind css
+os.system("tailwindcss -i ./static/src/main.css -o ./static/dist/main.css")
 
 app = Flask(__name__)
 assets = Environment(app)
@@ -16,53 +20,54 @@ css.build()
 print("Connecting to the MongoDB server...")
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["database"]
-users = db["users"] #verify that the database is connected
+users = db["users"]
 print("Done!")
 
 @app.route("/signup", methods = ["GET", "POST"])
 def signup():
-    form = forms.SignupForm()
-    if request.method == 'POST':
+    form = utils.forms.SignupForm()
+    if request.method == "POST":
         username = form.username.data
         email = form.email.data
         password = form.password.data
-        
-        print(username, email, password) 
-        
-        count = 0
-        
-        for user in users.find({"username": username}):
-            count += 1
-        
-        if count > 0:
-            return 'Username already in use'
+
+        uuid = utils.users.generate_uuid()
+        token = utils.users.generate_token(uuid, password)
+
+        user = users.find_one({"username": username})
+
+        if user:
+            return render_template("signup.html", form=form, error="Username already in use")
         else:
-            user = {"username": username, "email": email, "password": password}
+            user = {"uuid": uuid, "username": username, "email": email, "token": token}
             users.insert_one(user)
-            return 'Signed up'
-            
+            return render_template("signup.html", form=form, success="Account created successfully.", redirect="/")
+
     else:
         return render_template("signup.html", form=form)
-        
+
 
 @app.route("/login", methods = ["GET", "POST"])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
-        count = 0
-        
-        for user in users.find({"username": username, "password": password}):
-            count += 1
-        
-        if count > 0:
-            return 'Hello, {}!'.format(username)
+    form = utils.forms.LoginForm()
+    if request.method == "POST":
+        username = form.username.data
+        password = form.password.data
+
+        user = users.find_one({"username": username})
+        uuid = utils.users.get("uuid")
+
+        token = utils.users.generate_token(uuid, password)
+
+        user = users.find_one({"username": username, "token": token})
+
+        if user:
+            return render_template("login.html", form=form, success="Logged in successfully")
         else:
-            return 'Invalid'
-            
+            return render_template("login.html", form=form, error="Login credentials invalid")
+
     else:
-        return render_template("login.html")
+        return render_template("login.html", form=form)
 
 @app.route("/")
 def homepage():
@@ -71,6 +76,6 @@ def homepage():
 @app.route("/static/<path:path>")
 def serveStaticFile(path):
     return send_from_directory("static", path)
-  
+
 if __name__ == "__main__":
-  app.run(host="0.0.0.0")
+  app.run(host="0.0.0.0", debug=True)
