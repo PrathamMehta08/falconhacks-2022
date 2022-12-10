@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>College Housing Website</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <div id="navbar">
+            
+        </div>
+        
+        <form action="" method="post">
+            <p>{{form.username.label}}<br>
+            {{form.username(size=32)}}<br>
+            </p>
+            <p>{{form.password.label}}<br>
+            {{form.password(size=32)}}<br>
+            </p>
+            <p>{{form.email.label}}<br>
+            {{form.email(size=32)}}<br>
+            </p>
+            <p>{{ form.submit() }}</p>
+        </form>
+        {% if error %}
+            <div class="error">
+                <p class="alertText">{{ error }}</p>
+            </div>
+        {% endif %}
+    </body>
+</html>
