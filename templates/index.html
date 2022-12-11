@@ -1,17 +1,22 @@
 {% extends "base.html" %}
 {% block title %}Dormouse{% endblock %}
-
 {% block content %}
-<div class="flex justify-center items-center">
-<h2 class="text-xl"><b>Find Your Perfect Off-Campus Housing</b></h2></br>
-<div class="font-lighter">
-<p>Welcome to Dormouse!</p>
-<p>the best place to find off-campus housing near your college or university along with roomates.</p>
-<p>With a wide range of listings, from apartments and houses to townhomes and dorms, we have something for everyone.</p>
-<p>Use our search tools to find the perfect housing option for you, and get started on your college journey today!</p></br>
-</div>
-<button class="bg-transparent hover:bg-teal-500 text-teal-500 font-semibold hover:text-white py-2 px-4 border border-teal-500 hover:border-transparent rounded">
-  Get Started
-</button>
+<div style="flex-direction: column;" class="flex justify-center items-center mt-8">
+    <div style="flex-direction: column;" class="flex justify-center items-center mt-8 bg-gray-50 p-8 rounded-xl shadow-md border border-black-500">
+        <h2 class="text-xl"><b>Find Your Perfect Off-Campus Housing</b></h2>
+        </br>
+        <div style="flex-direction: column;" class="flex justify-center items-center font-lighter">
+            <p class = "items-center">Welcome to Dormouse!</p>
+            <p>The best place to find off-campus housing near your college or university along with roomates.</p>
+            <p>With a wide range of listings, from apartments and houses to townhomes and dorms, we have something for everyone.</p>
+            <p>Use our search tools to find the perfect housing option for you, and get started on your college journey today!</p>
+            </br>
+        </div>
+        <a href="/signup">
+        <button class="bg-transparent hover:bg-teal-500 text-teal-500 font-semibold hover:text-white py-2 px-4 border border-teal-500 hover:border-transparent rounded">
+        Get Started
+        </button>
+        </a>
+    </div>
 </div>
 {% endblock %}
