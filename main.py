@@ -156,8 +156,8 @@ def signup():
         else:
             user = {"username": username, "email": email,
                     "token": token, "interested": [], "name": username,
-                    "age": 0, "gender": 2}
-            users.insert_one({"uuid": uuid, "data": user})
+                    "age": 0, "gender": 2, "uuid": uuid}
+            users.insert_one(user)
             response = make_response(render_template("signup.html", form=form, success="Account created successfully.", redirect="/"))
             response.set_cookie("uuid", uuid)
             response.set_cookie("token", user["token"])
