@@ -11,7 +11,6 @@ def generate_token(uuid, password):
 
 def get_user(**kwargs):
     data = __main__.users.find_one(kwargs)
-    print(data)
     if data:
         return User(data)
     return data
@@ -39,6 +38,7 @@ class User:
     def __init__(self, data):
         self.data = data
         self.uuid = data.get("uuid")
-        self.email = data.get("email")
-        self.token = data.get("token")
-        self.preferences = data.get("prefs")
+        self.email = data["data"].get("email")
+        self.token = data["data"].get("token")
+        self.preferences = data["data"].get("prefs")
+        self.interested = data["data"].get("interested")

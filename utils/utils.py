@@ -1,4 +1,4 @@
-import inspect, utils
+import inspect, utils, hashlib
 
 class MandatoryArg:
     pass
@@ -32,3 +32,6 @@ def parse_args(defaults, args):
             except ValueError:
                 returned[key] = args[key]
     return returned
+
+def hash_string(string):
+    return hashlib.sha256(string.encode()).hexdigest()

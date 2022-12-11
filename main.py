@@ -10,11 +10,15 @@ import uuid
 import hashlib
 import random
 import inspect
+import time
+import requests
+
+import utils
 from utils.utils import *
 
 #===== initialize modules =====
 
-#rebuild tailwind css
+print("Rebuilding tailwind css...")
 os.system("tailwindcss -i ./static/src/main.css -o ./static/dist/main.css")
 
 #initialize flask
@@ -31,8 +35,7 @@ client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["database"]
 users = db["users"]
 properties = db["listings"]
-locations_cache = db["locations_cache"]
-listings_cache = db["listings_cache"]
+locations = db["locations"]
 
 print("Downloading user-agent strings...")
 user_agents = utils.scraper.scrape_user_agents()
@@ -59,7 +62,7 @@ def get_ip_info():
     return api_wrapper(request.args, utils.scraper.get_ip_info, defaults)
 
 #args: (query, latitude=0, longitude=0, page_size=5)
-@app.route("/api/search/")
+@app.route("/api/search_locations/")
 def search_locations():
     return api_wrapper(request.args, utils.scraper.get_urls)
 
@@ -68,10 +71,56 @@ def search_locations():
 def get_location():
     return api_wrapper(request.args, utils.scraper.get_location)
 
-#args: (id, purge_cache=0)
+#args: (id=None, alt_id=None, purge_cache=0)
 @app.route("/api/listing/")
 def get_listing():
-    return api_wrapper(request.args, utils.scraper.get_listing)
+    if not "id" in request.args and not "alt_id" in request.args:
+        return {"error": "Missing argument: id", "status": 400}, 400
+
+    id = request.args.get("id")
+    alt_id = request.args.get("alt_id")
+    try:
+        purge_cache = float(request.args.get("purge_cache"))
+    except:
+        purge_cache = 0
+
+    if id != None:
+        listing = properties.find_one({"id": id})
+        if listing:
+            if not purge_cache and listing["data"] != "appartments.com":
+                print("request was cached")
+                return listing["data"]
+            return utils.scraper.get_listing(listing["data"]["siteId"], user_agent=random.choice(user_agents), purge_cache=1)
+        else:
+            return {"error": "Listing does not exist", "status": 404}, 404
+    elif alt_id != None:
+        return utils.scraper.get_listing(alt_id, user_agent=random.choice(user_agents), purge_cache=purge_cache)
+
+    return {"error": "An error has occured", "status": 400}, 400
+
+@app.route("/api/filter_listings")
+def filter_listings():
+    pass
+
+@app.route("/api/user", methods = ["GET", "POST"])
+def user_info():
+    user = utils.users.check_cookies(request.cookies)
+    if user:
+        if request.method == "GET":
+            return {
+                "uuid": user.uuid,
+                "data": user.data["data"]
+            }
+        elif request.method == "POST":
+            content = request.get_json()
+            data = users.find_one(kwargs)
+            db.users.update_one({"uuid": uuid}, {
+                "$set": {
+                    "data": content["data"]
+                }
+            },True)
+    else:
+        return {"error": "Unauthorzized", "status": 401}, 401
 
 #===== frontend endpoints =====
 
@@ -91,10 +140,12 @@ def signup():
         if user:
             return render_template("signup.html", form=form, error="Username already in use.")
         else:
-            user = {"uuid": uuid, "username": username, "email": email, "token": token}
-            users.insert_one(user)
+            user = {"username": username, "email": email,
+                    "token": token, "interested": [], "name": username,
+                    "age": 0, "gender": 2}
+            users.insert_one({"uuid": uuid, "data": user})
             response = make_response(render_template("signup.html", form=form, success="Account created successfully.", redirect="/"))
-            response.set_cookie("uuid", user["uuid"])
+            response.set_cookie("uuid", uuid)
             response.set_cookie("token", user["token"])
             return response
     else:
@@ -122,10 +173,10 @@ def login():
                 token = utils.users.generate_token(uuid, password)
                 user = users.find_one({"email": authenicator, "token": token})
 
-        if user:
+        if user and user["data"]["token"] == token:
             response = make_response(render_template("login.html", form=form, success="Logged in successfully.", redirect="/"))
             response.set_cookie("uuid", user["uuid"])
-            response.set_cookie("token", user["token"])
+            response.set_cookie("token", token)
             return response
         else:
             return render_template("login.html", form=form, error="Login credentials invalid.")
@@ -153,8 +204,6 @@ def listings():
         property_type = form.property_type.data
         pets = form.pets.data
 
-        listing = properties.find_one({"postal": postal, "address": address})
-
         try:
             address = normalize_address({
                 'country_code': 'US',
@@ -162,15 +211,38 @@ def listings():
                 'city': city,
                 'postal_code': str(postal),
                 'street_address': address})
-
         except InvalidAddress as e:
             return render_template("listing.html", form=form, error="Invalid address")
+
+        #verify that the address actually exists
+        address_text = address["postal_code"] + ", " + address["street_address"]
+        url = f'https://nominatim.openstreetmap.org/search.php?street={address["street_address"]}&postalcode={address["postal_code"]}&format=jsonv2'
+        results = requests.get(url).json()
+        if len(results) == 0:
+            return render_template("listing.html", form=form, error="Address does not exist")
+        else:
+            geography = results[0]
+
+        #check for duplicates
+        id = hash_string(str(geography["place_id"]))
+        listing = properties.find_one({"id": id})
 
         if listing:
             return render_template("listing.html", form=form, error="Listing for that address already made.")
         else:
-            listing = {"address": address, "price_per_month": price_per_month, "bedrooms": bedrooms, "bathrooms": bathrooms, "square_ft": square_ft, "lot_size": lot_size, "property_type": property_type, "pets": pets}
-            properties.insert_one(listing)
+            #add the new listing to the database
+            listing = {"address": address, "price_per_month": price_per_month,
+                       "bedrooms": bedrooms, "bathrooms": bathrooms,
+                       "square_ft": square_ft, "lot_size": lot_size,
+                       "property_type": property_type, "pets": pets,
+                       "postal": postal, "state": state_code, "city": city,
+                       "geography": geography
+            }
+
+            listing["type"] = "builtin"
+            listing["id"] = id
+            print(listing)
+            properties.insert_one({"id": id, "data": listing, "type": "builtin"})
             return render_template("listing.html", form=form, success="Listing created successfully.", redirect="/")
 
     return render_template("listing.html", form=form, authenticated=authenticated)
@@ -233,15 +305,13 @@ def preferences():
 
         uuid = utils.users.check_cookies(request.cookies).uuid
 
-        db.users.update_one({"uuid": uuid},
-            {
-                "$set":
-                    {
-                        "prefs": [relationship, time, space, conflicts, studying, shy, home, music, clean, temp]
-                    }
-            },
-            True
-        )
+        db.users.update_one({"uuid": uuid}, {
+            "$set": {
+                "data": {
+                    "prefs": [relationship, time, space, conflicts, studying, shy, home, music, clean, temp]
+                }
+            }
+        }, True)
 
         return render_template("roommateform.html", form=form)
 

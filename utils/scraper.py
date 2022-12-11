@@ -1,5 +1,5 @@
 import __main__
-import requests, re, random, json, urllib.parse, inspect, time
+import requests, re, random, json, urllib.parse, inspect, time, hashlib
 
 fallback_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
 
@@ -7,7 +7,7 @@ fallback_user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML
 def scrape_user_agents():
     headers = {
         "user-agent": fallback_user_agent,
-        "referer": "https://user-agents.net/"
+        "referer": "https://user-agents.net/browsers/chrome"
     }
     url = "https://user-agents.net"
     regex = r"<a href='/string/.*?'>(.*?)</a>"
@@ -38,11 +38,11 @@ def get_location(path, user_agent=fallback_user_agent, page=None, purge_cache=0)
     if page != None:
         path += "/page-"+str(page)
 
-    cache_db = __main__.locations_cache
-    cached = cache_db.find_one({"path": path})
+    locations_db = __main__.locations
+    cached = locations_db.find_one({"path": path})
 
-    if cached and time.time() - cached["data"]["request_time"] < 3600 and not purge_cache:
-        print(cached["data"]["request_time"])
+    if not purge_cache and cached and time.time() - cached["data"]["request_time"] < 3600:
+        print("request was cached")
         return cached["data"]
     else:
         headers = {
@@ -69,16 +69,24 @@ def get_location(path, user_agent=fallback_user_agent, page=None, purge_cache=0)
                 data_full[new_key] = data_full[key]["body"]["data"]
                 del data_full[key]
 
+        for listing in data_full["listing/search/list"]:
+            id_hash = hashlib.sha256(listing["siteId"].encode()).hexdigest()
+            listing["id"] = id_hash
+            listing["request_time"] = time.time()
+            listing["type"] = "appartments.com"
+
         data["request_time"] = time.time()
-        cache_db.insert_one({"path": path, "data": data})
+        locations_db.update_one({"path": path}, {"$set": {"path": path, "data": data}}, upsert=True)
 
         return data
 
 def get_listing(id, user_agent=fallback_user_agent, purge_cache=0):
-    cache_db = __main__.listings_cache
-    cached = cache_db.find_one({"id": id})
+    listings_db = __main__.properties
+    id_hash = hashlib.sha256(id.encode()).hexdigest()
+    cached = listings_db.find_one({"id": id_hash})
 
-    if cached and time.time() - cached["data"]["request_time"] < 3600 and not purge_cache:
+    if not purge_cache and cached and time.time() - cached["data"]["request_time"] < 3600:
+        print("request was cached")
         return cached["data"]
     else:
         headers = {
@@ -86,9 +94,12 @@ def get_listing(id, user_agent=fallback_user_agent, purge_cache=0):
             "referer": "https://www.forrentuniversity.com"
         }
         url = "https://www.forrentuniversity.com/bff/listing/"+id
-        data = requests.get(url, headers=headers).json()
+        listing = requests.get(url, headers=headers).json()["data"]
 
-        data["request_time"] = time.time()
-        cache_db.insert_one({"id": id, "data": data})
+        id_hash = hashlib.sha256(listing["siteId"].encode()).hexdigest()
+        listing["id"] = id_hash
+        listing["request_time"] = time.time()
+        listing["type"] = "appartments.com"
+        listings_db.update_one({"id": id_hash}, {"$set": {"id": id_hash, "data": listing, "type": "appartments.com"}}, upsert=True)
 
-        return data
+        return listing
