@@ -36,7 +36,7 @@ def get_urls(query, latitude=0, longitude=0, page_size=5, user_agent=fallback_us
 #get listings for a collage/city
 def get_location(path, user_agent=fallback_user_agent, page=None, purge_cache=0):
     if page != None:
-        path += "/page-"+str(page)
+        path += "/page-"+str(int(page))
 
     locations_db = __main__.locations
     cached = locations_db.find_one({"path": path})

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Map - Dormouse{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+    <script src="/static/src/map.js" async></script>
+    <script>
+        var ip_data = "{{ ip }}"
+    </script>
+    <style>
+        body {
+            height: calc(100vh - 64px);
+        }
+        #map {
+            height: calc(100vh - 64px);
+            flex-grow: 2;
+        }
+        #input_pane {
+            width: 300px;
+        }
+    </style>
+{% endblock %}
+
+
+{% block content %}
+    <div class="flex w-full h-full">
+        <div id="input_pane" class="p-1">
+            <input class="w-full p-2 border border-black-500 rounded-md corner-fix shadow-sm" type="text" name="query_input" id="query_input" placeholder="Type in a college or city name."/>
+            <ul id="suggestions_list" class="mt-2 border border-black-500 rounded-md corner-fix hidden"></ul>
+            <div id="results"></div>
+        </div>
+        <div id="map">
+        </div>
+    </div>
+{% endblock %}

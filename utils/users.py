@@ -38,7 +38,7 @@ class User:
     def __init__(self, data):
         self.data = data
         self.uuid = data.get("uuid")
-        self.email = data["data"].get("email")
-        self.token = data["data"].get("token")
-        self.preferences = data["data"].get("prefs")
-        self.interested = data["data"].get("interested")
+        self.email = data.get("email")
+        self.token = data.get("token")
+        self.preferences = data.get("prefs")
+        self.interested = data.get("interested")

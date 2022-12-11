@@ -100,7 +100,22 @@ def get_listing():
 
 @app.route("/api/filter_listings")
 def filter_listings():
-    pass
+    cursor = properties.find({
+        #bro idk how to make it select listings with a range of locations
+        "type": "builtin",
+        "data.geography.lat": {
+            "$gte": float(request.args.get("lat_min")),
+            "$lte": float(request.args.get("lat_max"))
+        },
+        "data.geography.lon": {
+            "$gte": float(request.args.get("lon_min")),
+            "$lte": float(request.args.get("lon_max"))
+        }
+    })
+    results = []
+    for item in cursor:
+        results.append({"id": item["id"], "data": item["data"]})
+    return results
 
 @app.route("/api/user", methods = ["GET", "POST"])
 def user_info():
@@ -113,7 +128,6 @@ def user_info():
             }
         elif request.method == "POST":
             content = request.get_json()
-            data = users.find_one(kwargs)
             db.users.update_one({"uuid": uuid}, {
                 "$set": {
                     "data": content["data"]
@@ -173,7 +187,7 @@ def login():
                 token = utils.users.generate_token(uuid, password)
                 user = users.find_one({"email": authenicator, "token": token})
 
-        if user and user["data"]["token"] == token:
+        if user and user["token"] == token:
             response = make_response(render_template("login.html", form=form, success="Logged in successfully.", redirect="/"))
             response.set_cookie("uuid", user["uuid"])
             response.set_cookie("token", token)
@@ -316,6 +330,13 @@ def preferences():
         return render_template("roommateform.html", form=form)
 
     return render_template("roommateform.html", form=form, authenticated=authenticated)
+
+@app.route("/map")
+def view_map():
+    authenticated = utils.users.is_authenticated(request.cookies)
+    if not authenticated:
+        return redirect("/login", code=303)
+    return render_template("map.html", authenticated=authenticated)
 
 @app.route("/")
 def homepage():
