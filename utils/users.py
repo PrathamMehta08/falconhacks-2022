@@ -32,6 +32,7 @@ def is_authenticated(cookies):
 class User:
     def __init__(self, data):
         self.data = data
-        self.uuid = data["uuid"]
-        self.email = data["email"]
-        self.token = data["token"]
+        self.uuid = data.get("uuid")
+        self.email = data.get("email")
+        self.token = data.get("token")
+        self.preferences = data.get("prefs")

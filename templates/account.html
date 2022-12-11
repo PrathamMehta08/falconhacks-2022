@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Account - Dormouse{% endblock %}
+
+{% block content %}
+   <div class="w-9/12">
+  <nav>
+    <ul role="tablist" class="tabs p-1">
+      <li class="nav-item">
+        <a href="/preferences"
+          class="nav-link active mb-0 px-0 py-1"
+          aria-selected="true"
+          aria-controls="myprofile"
+          role="tab"
+          >My Profile</a
+        >
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link mb-0 px-0 py-1"
+          aria-selected="false"
+          aria-controls="mydashboard"
+          role="tab"
+          >Dashboard</a
+        >
+      </li>
+    </ul>
+  </nav>
+</div>
+{% endblock %}
