@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Listing - Dormouse{% endblock %}
+
+{% block content %}
+    <div class="flex justify-center items-center mt-4">
+        <div class="bg-gray-50 p-8 rounded-xl shadow-md border border-black-500">
+            <h2 class="flex justify-center items-center font-bold text-2xl mb-2">List Property</h2>
+            <form action="" method="post">
+                <p>{{form.address.label}}</p>
+                <div class="border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3">{{form.address(size=32)}}<br></div>
+                <p>{{form.price.label}}</p>
+                <div class="border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3">{{form.price(size=32)}}<br></div>
+                <p>{{form.bedrooms.label}}</p>
+                <div class="border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3">{{form.bedrooms(size=32)}}<br></div>
+                <p>{{form.bathrooms.label}}</p>
+                <div class="border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3">{{form.bathrooms(size=32)}}<br></div>
+                <p>{{form.square_ft.label}}</p>
+                <div class="border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3">{{form.square_ft(size=32)}}<br></div>
+                <p>{{form.lot_size.label}}</p>
+                <div class="border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3">{{form.lot_size(size=32)}}<br></div>
+                <p>{{form.type_of_house.label}}</p>
+                <div class="border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3">{{form.type_of_house(size=32)}}<br></div>
+                <p>{{form.pets.label}}</p>
+                {% for subfield in form.pets %}
+                    <tr>
+                        <td>{{ subfield(class="form-check-input") }}</td>
+                        <td>{{ subfield.label(class="mr-5") }}</td>
+                    </tr>
+                {% endfor %}
+                {% if error %}
+                    <div class="flex justify-center items-center text-red-900 bg-red-400 w-full py-2 px-4 rounded shadow-sm">
+                      <p>{{ error }}</p>
+                    </div>
+                {% endif %}
+                {% if success %}
+                    <div class="flex justify-center items-center text-emerald-900 bg-emerald-400 w-full py-2 px-4 rounded shadow-sm">
+                      <p>{{ success }}</p>
+                    </div>
+                {% endif %}
+                <button class="text-white bg-teal-500 hover:bg-teal-600 w-full py-2 px-4 rounded shadow-md mt-3">{{ form.submit() }}</button>
+            </form>
+        </div>
+    </div>
+    {% if redirect %}
+        <script>
+            setTimeout(function(){window.location.href = "{{ redirect }}"}, 2000);
+        </script>
+    {% endif %}
+{% endblock %}
