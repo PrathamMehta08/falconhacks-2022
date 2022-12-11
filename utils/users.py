@@ -22,9 +22,15 @@ def check_cookies(cookies):
         token = cookies["token"]
         user = get_user(uuid=uuid)
 
-        if user.token == token:
+        if user == None:
+            return user
+        elif user.token == token:
             return user
     return
+
+def cache_user_agent(request):
+    user_agent = request.headers.get('User-Agent')
+
 
 def is_authenticated(cookies):
     return check_cookies(cookies) != None

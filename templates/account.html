@@ -2,28 +2,51 @@
 {% block title %}Account - Dormouse{% endblock %}
 
 {% block content %}
-   <div class="w-9/12">
-  <nav>
-    <ul role="tablist" class="tabs p-1">
-      <li class="nav-item">
-        <a href="/preferences"
-          class="nav-link active mb-0 px-0 py-1"
-          aria-selected="true"
-          aria-controls="myprofile"
-          role="tab"
-          >My Profile</a
-        >
-      </li>
-      <li class="nav-item">
-        <a
-          class="nav-link mb-0 px-0 py-1"
-          aria-selected="false"
-          aria-controls="mydashboard"
-          role="tab"
-          >Dashboard</a
-        >
-      </li>
-    </ul>
-  </nav>
-</div>
+   <div class="flex justify-center items-center border-b border-gray-200 dark:border-gray-700">
+        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
+            <li class="mr-2">
+                <a href="/account" class="inline-flex p-4 text-blue-600 rounded-t-lg border-b-2 border-blue-600 active dark:text-blue-500 dark:border-blue-500 group" aria-current="page">
+                    <svg aria-hidden="true" class="mr-2 w-5 h-5 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path></svg>Account
+                </a>
+            </li>
+            <li class="mr-2">
+                <a href="/preferences" class="inline-flex p-4 rounded-t-lg border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group">
+                    <svg aria-hidden="true" class="mr-2 w-5 h-5 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z"></path></svg>Preferences
+                </a>
+            </li>
+        </ul>
+    </div>
+    <div class="flex justify-center items-center mt-4">
+        <div style="margin: auto; width: 400px; padding: 10px;" class="bg-gray-50 p-8 rounded-xl shadow-md border border-black-500 z-0 max-w-lg">
+            <h2 class="flex justify-center items-center font-bold text-2xl mb-2">Profile Settings</h2>
+            <form action="" method="post">
+                <p>{{form.full_name.label}}</p>
+                <div class="relative border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3">
+                    {{form.full_name}}
+                </div>
+
+                <p>{{form.age.label}}</p>
+                <div class="border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3">{{form.age}}<br></div>
+
+                <p>{{form.gender.label}}</p>
+                {% for subfield in form.gender %}
+                    <tr>
+                        <td>{{ subfield(class="form-check-input") }}</td>
+                        <td>{{ subfield.label(class="mr-5") }}</td>
+                    </tr>
+                {% endfor %}
+                {% if success %}
+                    <div class="flex justify-center items-center text-emerald-900 bg-emerald-400 w-full py-2 px-4 rounded shadow-sm">
+                      <p>{{ success }}</p>
+                    </div>
+                {% endif %}
+                <button class="text-white bg-teal-500 hover:bg-teal-600 w-full py-2 px-4 rounded shadow-md mt-3">{{ form.submit() }}</button>
+            </form>
+        </div>
+    </div>
+    {% if redirect %}
+        <script>
+            setTimeout(function(){window.location.href = "{{ redirect }}"}, 2000);
+        </script>
+    {% endif %}
 {% endblock %}

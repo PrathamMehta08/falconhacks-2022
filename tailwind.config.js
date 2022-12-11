@@ -2,7 +2,9 @@
 module.exports = {
   content: ["./static/**/*.{html,js}", "./templates/**/*.html"],
   theme: {
-    extend: {},
+    extend: {
+      backgroundColor: ['even'],
+    },
     fontFamily: {
       "sans": ["Work Sans", "ui-sans-serif"]
     }

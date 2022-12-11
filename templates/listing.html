@@ -1,21 +1,29 @@
 {% extends "base.html" %}
 {% block title %}Listing - Dormouse{% endblock %}
 
-{% block head %}
-<script src="/static/src/listings.js" async></script>
-{% endblock %}
-
 {% block content %}
-    <div class="flex justify-center items-center mt-4">
-        <div class="bg-gray-50 p-8 rounded-xl shadow-md border border-black-500">
+    <div class="flex justify-center items-center mt-4 mb-4">
+        <div class="bg-gray-50 p-8 rounded-xl shadow-md border border-black-500 z-0 max-w-lg">
             <h2 class="flex justify-center items-center font-bold text-2xl mb-2">List Property</h2>
             <form action="" method="post">
+                <p>{{form.state_code.label}}</p>
+                <div class="relative border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3">
+                    {{form.state_code}}
+                </div>
+
+                <p>{{form.city.label}}</p>
+                <div class="relative border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3">
+                    {{form.city}}
+                </div>
+
+                <p>{{form.postal.label}}</p>
+                <div class="relative border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3">
+                    {{form.postal}}
+                </div>
+
                 <p>{{form.address.label}}</p>
-                <div class="border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3">
+                <div class="relative border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3">
                     {{form.address}}
-                    <datalist id="address_list">
-                    </datalist>
-                    <br>
                 </div>
 
                 <p>{{form.price.label}}</p>
@@ -32,11 +40,16 @@
                     </div>
                 </div>
 
-                <p>{{form.square_ft.label}}</p>
-                <div class="border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3">{{form.square_ft}}<br></div>
-
-                <p>{{form.lot_size.label}}</p>
-                <div class="border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3">{{form.lot_size}}<br></div>
+                <div class="flex">
+                    <div>
+                        <p>{{form.square_ft.label}}</p>
+                        <div class="border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3 mr-3">{{form.square_ft}}<br></div>
+                    </div>
+                    <div>
+                        <p>{{form.lot_size.label}}</p>
+                        <div class="border border-black-500 rounded-md corner-fix shadow-sm form-text mb-3">{{form.lot_size}}<br></div>
+                    </div>
+                </div>
 
                 <p>{{form.property_type.label}}</p>
                 <div class="border border-black-500 rounded-md corner-fix shadow-sm mb-3">{{form.property_type}}<br></div>
